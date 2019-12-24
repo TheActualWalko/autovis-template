@@ -1,0 +1,29 @@
+{
+  "name": "cra-template-autovis",
+  "version": "1.0.0",
+  "keywords": [
+    "react",
+    "create-react-app",
+    "template",
+    "three.js",
+    "visualizer"
+  ],
+  "description": "A Create React App template for making musical visualizations.",
+  "author": "Sam Watkinson",
+  "main": "template.json",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/TheActualWalko/autovis-template.git"
+  },
+  "license": "MIT",
+  "engines": {
+    "node": ">=8"
+  },
+  "bugs": {
+    "url": "https://github.com/TheActualWalko/autovis-template/issues"
+  },
+  "files": [
+    "template",
+    "template.json"
+  ]
+}
