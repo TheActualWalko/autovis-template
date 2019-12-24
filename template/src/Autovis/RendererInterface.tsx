@@ -1,6 +1,5 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import * as THREE from 'three';
-import './RendererInterface.css';
 import { StemInstantAnalysisMap, StemFullAnalysisMap, AnyScenePartSpec } from './types';
 import { Camera } from 'three';
 import Controls from './Controls';
@@ -67,11 +66,15 @@ export default ({
 
   const onResize = useCallback(() => {
     if (rendererRef.current) {
-      const screenAspectRatio = window.innerWidth / window.innerHeight;
-      const videoAspectRatio = width / height;
-      const factor = (videoAspectRatio > screenAspectRatio) ? window.innerWidth / width : window.innerHeight / height;
-      const leftPadding = (videoAspectRatio > screenAspectRatio) ? 0 : (window.innerWidth - (width * factor)) / 2;
-      rendererRef.current.domElement.setAttribute('style', `transform: scale(${factor}); margin-left: ${leftPadding}px`);
+      if (width > window.innerWidth || height > window.innerHeight) {
+        const screenAspectRatio = window.innerWidth / window.innerHeight;
+        const videoAspectRatio = width / height;
+        const factor = (videoAspectRatio > screenAspectRatio) ? window.innerWidth / width : window.innerHeight / height;
+        const leftPadding = (videoAspectRatio > screenAspectRatio) ? 0 : (window.innerWidth - (width * factor)) / 2;
+        rendererRef.current.domElement.setAttribute('style', `transform: scale(${factor}); margin-left: ${leftPadding}px`);
+      } else if (height < (window.innerHeight - 40)) {
+        rendererRef.current.domElement.setAttribute('style', `margin-top: 40px`);
+      }
     }
   }, [width, height]);
 
@@ -199,7 +202,7 @@ export default ({
         onRender={renderVideo}
         readoutRef={readoutRef}
       />
-      <div ref={registerCanvasWrapper} />
+      <div ref={registerCanvasWrapper} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }} />
     </div>
   )
 }
