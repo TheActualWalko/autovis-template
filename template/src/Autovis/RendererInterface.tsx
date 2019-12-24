@@ -98,7 +98,7 @@ export default ({
         onResize();
       }
     },
-    [width, height, parts]
+    [width, height, parts, onResize]
   );
 
   const play = useCallback(
