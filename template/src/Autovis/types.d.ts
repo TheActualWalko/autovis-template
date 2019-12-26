@@ -32,5 +32,6 @@ export type AnyScenePartSpec = (
   ScenePartSpec<THREE.CubeCamera> |
   ScenePartSpec<THREE.ArrayCamera> |
   ScenePartSpec<THREE.Sprite> |
-  ScenePartSpec<THREE.Mesh>
+  ScenePartSpec<THREE.Mesh> |
+  ScenePartSpec<Pass>
 );

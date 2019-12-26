@@ -1,6 +1,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import * as THREE from 'three';
+import { GlitchPass } from 'three/examples/jsm/postprocessing/GlitchPass.js';
+import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 import Autovis, { part } from './Autovis';
 
 // A utility function that makes the code below a little shorter.
@@ -34,6 +36,21 @@ ReactDOM.render(
         positionObject(new THREE.PerspectiveCamera(55, width/height, 0.1, 1000), 0, 0, 4),
         (camera, analysis, time) => {
           camera.position.x = (analysis.kick.amplitude * 0.03) * Math.sin(time * 100);
+        }
+      ),
+
+      part(
+        new UnrealBloomPass(new THREE.Vector2(512, 512), 0.5, 5, 0.015),
+        (pass, analysis) => {
+          pass.radius = 5 + 50 * analysis.hat.amplitude
+        }
+      ),
+
+      part(
+        new GlitchPass(),
+        (pass, analysis) => {
+          pass.randX = 20
+          pass.curF = analysis.kick.amplitude > 0.5 ? 1 : 19
         }
       ),
 
