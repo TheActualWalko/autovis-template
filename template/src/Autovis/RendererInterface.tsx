@@ -1,5 +1,10 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import * as THREE from 'three';
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer';
+import { Pass } from 'three/examples/jsm/postprocessing/Pass';
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass';
+import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass';
+import { CopyShader } from 'three/examples/jsm/shaders/CopyShader';
 import { StemInstantAnalysisMap, StemFullAnalysisMap, AnyScenePartSpec } from './types';
 import { Camera } from 'three';
 import Controls from './Controls';
@@ -42,6 +47,7 @@ export default ({
   const sceneRef = useRef<THREE.Scene | null>(null);
   const cameraRef = useRef<THREE.Camera | null>(null);
   const rendererRef = useRef<THREE.Renderer | null>(null);
+  const composerRef = useRef<EffectComposer | null>(null);
   const animationFrameRef = useRef<number | null>(null);
   const readoutRef = useRef<HTMLDivElement>(null);
   const [renderingVideo, setRenderingVideo] = useState(false);
@@ -82,15 +88,22 @@ export default ({
     (wrapper: HTMLDivElement) => {
       if (wrapper) {
         const renderer = makeRenderer(width, height);
+        const composer = new EffectComposer(renderer);
         const objects = parts.map(([object]) => object);
         rendererRef.current = renderer;
+        composerRef.current = composer;
         cameraRef.current = objects.find((object) => object instanceof Camera) as Camera;
         if (sceneRef.current) {
           sceneRef.current.remove();
         }
         const scene = new THREE.Scene();
-        objects.forEach((o) => scene.add(o));
+        objects.forEach((object) => !(object instanceof Pass) && scene.add(object));
+        composer.addPass(new RenderPass(scene, cameraRef.current));
         sceneRef.current = scene;
+        objects.forEach((object) => (object instanceof Pass) && composer.addPass(object));
+        const copyPass = new ShaderPass(CopyShader);
+        copyPass.renderToScreen = true;
+        composer.addPass(copyPass);
         wrapper.querySelectorAll('*').forEach((node) => node.remove());
         wrapper.appendChild(renderer.domElement);
         window.removeEventListener('resize', onResize);
@@ -126,9 +139,10 @@ export default ({
     () => {
       const animate = () => {
         const renderer = rendererRef.current;
+        const composer = composerRef.current;
         const scene = sceneRef.current;
         const camera = cameraRef.current;
-        if (!renderer || !scene || !camera) {
+        if (!renderer || !composer || !scene || !camera) {
           return;
         }
         const currentTime = getCurrentTime();
@@ -143,7 +157,7 @@ export default ({
         }
         const instantAnalysis: StemInstantAnalysisMap = getInstantAnalysis(stemAnalysis, frame);
         parts.forEach(([object, updater]) => updater && updater(object as any, instantAnalysis, currentTime));
-        renderer.render(scene, camera);
+        composer.render();
         if (renderingVideo) {
           capturer.capture(renderer.domElement);
         }
