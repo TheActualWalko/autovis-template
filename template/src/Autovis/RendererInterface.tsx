@@ -6,8 +6,8 @@ import getInstantAnalysis from './getInstantAnalysis';
 import AudioContainer from './AudioContainer';
 import useThreeComposer from './useThreeComposer';
 
-const getFrameNumber = (currentTime: number, frameRate: number) => Math.floor(
-  (currentTime * frameRate) +
+const getFrameNumber = (time: number, frameRate: number) => Math.floor(
+  (time * frameRate) +
   1/(10 * frameRate) // this compensates for some floating point inaccuracy induced by the non-realtime render
 );
 
@@ -70,7 +70,7 @@ export default ({
   );
 
   const renderFrameAtTime = useCallback(
-    (time: number) => renderFrame(Math.floor(time * frameRate)),
+    (time: number) => renderFrame(getFrameNumber(time, frameRate)),
     [frameRate, renderFrame]
   );
 
