@@ -1,22 +1,15 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
-import * as THREE from 'three';
-import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer';
-import { Pass } from 'three/examples/jsm/postprocessing/Pass';
-import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass';
-import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass';
-import { CopyShader } from 'three/examples/jsm/shaders/CopyShader';
 import { StemInstantAnalysisMap, StemFullAnalysisMap, AnyScenePartSpec } from './types';
-import { Camera } from 'three';
 import Controls from './Controls';
 import { updateTimeRef, getCurrentTime } from './time';
 import getInstantAnalysis from './getInstantAnalysis';
-import pad from './pad';
+import AudioContainer from './AudioContainer';
+import useThreeComposer from './useThreeComposer';
 
-const makeRenderer = (width: number, height: number) => {
-  const renderer = new THREE.WebGLRenderer({ antialias: true });
-  renderer.setSize(width, height);
-  return renderer;
-}
+const getFrameNumber = (currentTime: number, frameRate: number) => Math.floor(
+  (currentTime * frameRate) +
+  1/(10 * frameRate) // this compensates for some floating point inaccuracy induced by the non-realtime render
+);
 
 interface RendererInterfaceProps {
   width: number;
@@ -43,161 +36,55 @@ export default ({
   endTime = duration,
   capturer
 }: RendererInterfaceProps) => {
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  const sceneRef = useRef<THREE.Scene | null>(null);
-  const cameraRef = useRef<THREE.Camera | null>(null);
-  const rendererRef = useRef<THREE.Renderer | null>(null);
-  const composerRef = useRef<EffectComposer | null>(null);
   const animationFrameRef = useRef<number | null>(null);
-  const readoutRef = useRef<HTMLDivElement>(null);
+  const lastFrameRef = useRef<number>(-Infinity);
   const [renderingVideo, setRenderingVideo] = useState(false);
   const [playing, setPlaying] = useState(false);
+  const [ThreeComposer, render, capture] = useThreeComposer(width, height, parts);
   const minFrame = Math.ceil(startTime * frameRate);
   const maxFrame = Math.ceil(endTime * frameRate);
 
-  const registerAudioElement = useCallback(
-    (audioElement: HTMLAudioElement) => {
-      audioElement.onplaying = () => {
-        console.log('updating time ref');
-        updateTimeRef(audioElement.currentTime);
-        setPlaying(true);
-      }
-      audioElement.onpause = () => {
-        setPlaying(false);
-      }
-      audioRef.current = audioElement;
-    },
-    []
-  );
-
-  const onResize = useCallback(() => {
-    if (rendererRef.current) {
-      if (width > window.innerWidth || height > window.innerHeight) {
-        const screenAspectRatio = window.innerWidth / window.innerHeight;
-        const videoAspectRatio = width / height;
-        const factor = (videoAspectRatio > screenAspectRatio) ? window.innerWidth / width : window.innerHeight / height;
-        const leftPadding = (videoAspectRatio > screenAspectRatio) ? 0 : (window.innerWidth - (width * factor)) / 2;
-        rendererRef.current.domElement.setAttribute('style', `transform: scale(${factor}); margin-left: ${leftPadding}px`);
-      } else if (height < (window.innerHeight - 40)) {
-        rendererRef.current.domElement.setAttribute('style', `margin-top: 40px`);
-      }
-    }
-  }, [width, height]);
-
-  const registerCanvasWrapper = useCallback(
-    (wrapper: HTMLDivElement) => {
-      if (wrapper) {
-        const renderer = makeRenderer(width, height);
-        const composer = new EffectComposer(renderer);
-        const objects = parts.map(([object]) => object);
-        rendererRef.current = renderer;
-        composerRef.current = composer;
-        cameraRef.current = objects.find((object) => object instanceof Camera) as Camera;
-        if (sceneRef.current) {
-          sceneRef.current.remove();
-        }
-        const scene = new THREE.Scene();
-        objects.forEach((object) => !(object instanceof Pass) && scene.add(object));
-        composer.addPass(new RenderPass(scene, cameraRef.current));
-        sceneRef.current = scene;
-        objects.forEach((object) => (object instanceof Pass) && composer.addPass(object));
-        const copyPass = new ShaderPass(CopyShader);
-        copyPass.renderToScreen = true;
-        composer.addPass(copyPass);
-        wrapper.querySelectorAll('*').forEach((node) => node.remove());
-        wrapper.appendChild(renderer.domElement);
-        window.removeEventListener('resize', onResize);
-        window.addEventListener('resize', onResize);
-        onResize();
-      }
-    },
-    [width, height, parts, onResize]
-  );
-
-  const play = useCallback(
+  const onPlay = useCallback(
     () => {
-      if (audioRef.current) {
-        audioRef.current.currentTime = startTime;
-        audioRef.current.play();
-      }
+      setPlaying(true);
       setRenderingVideo(false);
     },
-    [startTime]
+    [setPlaying, setRenderingVideo]
   );
 
-  const pause = useCallback(
+  const onPause = useCallback(
     () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
-      }
+      setPlaying(false);
       setRenderingVideo(false);
     },
-    []
+    [setPlaying, setRenderingVideo]
   );
 
-  const startAnimation = useCallback(
-    () => {
-      const animate = () => {
-        const renderer = rendererRef.current;
-        const composer = composerRef.current;
-        const scene = sceneRef.current;
-        const camera = cameraRef.current;
-        if (!renderer || !composer || !scene || !camera) {
-          return;
-        }
-        const currentTime = getCurrentTime();
-        const frame = Math.floor(currentTime * frameRate);
-        if (frame > maxFrame) {
-          if (renderingVideo) {
-            capturer.stop();
-            capturer.save();
-          }
-          pause();
-          return;
-        }
-        const instantAnalysis: StemInstantAnalysisMap = getInstantAnalysis(stemAnalysis, frame);
-        parts.forEach(([object, updater]) => updater && updater(object as any, instantAnalysis, currentTime));
-        composer.render();
-        if (renderingVideo) {
-          capturer.capture(renderer.domElement);
-        }
-        animationFrameRef.current = requestAnimationFrame(animate);
-        if (readoutRef.current) {
-          const minutes = Math.floor(currentTime / 60);
-          const seconds = Math.floor(currentTime % 60);
-          const time = `${pad(minutes, 2)}:${pad(seconds, 2)}.${frame % frameRate}`;
-          readoutRef.current.innerHTML = renderingVideo
-            ? `Rendering frame ${frame - minFrame}/${maxFrame - minFrame} (${time}) `
-            : `${time}`
-        }
-      }
-      animate();
-      return () => {
-        animationFrameRef.current && cancelAnimationFrame(animationFrameRef.current);
+  const renderFrame = useCallback(
+    (frame) => {
+      const instantAnalysis: StemInstantAnalysisMap = getInstantAnalysis(stemAnalysis, frame);
+      const frameTime = frame / frameRate;
+      render(instantAnalysis, frameTime);
+    },
+    [frameRate, stemAnalysis, render]
+  );
+
+  const renderFrameAtTime = useCallback(
+    (time: number) => renderFrame(Math.floor(time * frameRate)),
+    [frameRate, renderFrame]
+  );
+
+  const onTimeChange = useCallback(
+    (time: number) => {
+      updateTimeRef(time);
+      if (!playing) {
+        renderFrameAtTime(time);
       }
     },
-    [renderingVideo, pause, animationFrameRef, capturer, frameRate, maxFrame, minFrame, parts, stemAnalysis]
+    [playing, renderFrameAtTime]
   );
 
-  const stopAnimation = useCallback(
-    () => {
-      animationFrameRef.current && cancelAnimationFrame(animationFrameRef.current);
-    },
-    []
-  );
-
-  useEffect(
-    () => {
-      if (playing) {
-        startAnimation();
-      } else {
-        stopAnimation();
-      }
-    },
-    [startAnimation, stopAnimation, playing, renderingVideo]
-  );
-
-  const renderVideo = useCallback(
+  const onStartRender = useCallback(
     () => {
       capturer.start();
       updateTimeRef(startTime);
@@ -207,16 +94,91 @@ export default ({
     [capturer, setRenderingVideo, startTime]
   );
 
+  const startAnimation = useCallback(
+    () => {
+      animationFrameRef.current && cancelAnimationFrame(animationFrameRef.current);
+      let animationFrame: number;
+      const animate = () => {
+        const currentTime = getCurrentTime();
+        const frame = getFrameNumber(currentTime, frameRate);
+        if (frame > maxFrame) {
+          if (renderingVideo) {
+            capturer.stop();
+            capturer.save();
+          }
+          onPause();
+          return;
+        }
+        if (renderingVideo || lastFrameRef.current !== frame) {
+          lastFrameRef.current = frame;
+          renderFrame(frame);
+          if (renderingVideo) {
+            capture(capturer);
+          }
+        }
+        animationFrame = requestAnimationFrame(animate);
+        animationFrameRef.current = animationFrame;
+      }
+      animate();
+      return () => {
+        animationFrame && cancelAnimationFrame(animationFrame);
+      }
+    },
+    [renderingVideo, animationFrameRef, onPause, capturer, frameRate, maxFrame, renderFrame, capture]
+  );
+
+  const stopAnimation = useCallback(
+    () => animationFrameRef.current && cancelAnimationFrame(animationFrameRef.current),
+    []
+  );
+
+  useEffect(
+    () => {
+      playing ? startAnimation() : stopAnimation()
+    },
+    [playing, startAnimation, stopAnimation]
+  );
+
   return (
     <div style={{textAlign: 'center'}}>
-      <audio ref={registerAudioElement} src={masterURL} />
-      <Controls
-        onPlay={play}
-        onPause={pause}
-        onRender={renderVideo}
-        readoutRef={readoutRef}
-      />
-      <div ref={registerCanvasWrapper} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }} />
+      {renderingVideo ? null : (
+        <>
+          <AudioContainer onTimeChange={onTimeChange} onPlay={onPlay} onPause={onPause} src={masterURL}>
+            {({ currentTime, paused, play, pause, seek }) => (
+              <Controls
+                startTime={minFrame}
+                paused={paused}
+                onPlay={play}
+                onPause={pause}
+                onSeek={seek}
+                currentTime={currentTime}
+              />
+            )}
+          </AudioContainer>
+          <div style={{ position: 'fixed', top: 0, right: 0, width: 'auto', textAlign: 'right', zIndex: 3 }}>
+            <button
+              onClick={() => {
+                localStorage.clear();
+                window.location.reload();
+              }}
+            >
+              Forget Cached Data
+            </button>
+            <button
+              onClick={() => {
+                /* eslint-disable */
+                if (confirm("Warning: This process is in Beta. It can be very slow, and if your browser is hidden your render may fail. Video will not include sound.")) {
+                  onStartRender();
+                }
+                /* eslint-enable */
+              }}
+            >
+              Save to Video
+            </button>
+          </div>
+        </>
+      )}
+      <ThreeComposer style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 1 }} />
     </div>
   )
 }
