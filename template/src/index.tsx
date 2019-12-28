@@ -39,18 +39,13 @@ ReactDOM.render(
         }
       ),
 
-      part(
-        new UnrealBloomPass(new THREE.Vector2(512, 512), 0.5, 5, 0.015),
-        (pass, analysis) => {
-          pass.radius = 5 + 50 * analysis.hat.amplitude
-        }
-      ),
+      part(new UnrealBloomPass(new THREE.Vector2(512, 512), 0.75, 0.4, 0.85)),
 
       part(
         new GlitchPass(),
         (pass, analysis) => {
           pass.randX = 20
-          pass.curF = analysis.kick.amplitude > 0.5 ? 1 : 19
+          pass.curF = analysis.clap.amplitude > 0.5 ? 1 : 19
         }
       ),
 
