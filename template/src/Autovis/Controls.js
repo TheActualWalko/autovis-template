@@ -1,14 +1,13 @@
 import React from "react";
 import "./controls.css";
+import pad from './pad';
 
-const convertSecToTime = secs => {
-  var h = Math.floor(secs / 3600);
-  var m = Math.floor((secs % 3600) / 60);
-  var s = Math.floor((secs % 3600) % 60);
-  return `${h < 10 ? "0" : ""}${h}:${m < 10 ? "0" : ""}${m}:${
-    s < 10 ? "0" : ""
-  }${s}`;
-};
+
+const printTime = (currentTime) => {
+  const minutes = Math.floor(currentTime / 60);
+  const seconds = Math.floor(currentTime % 60);
+  return `${pad(minutes, 2)}:${pad(seconds, 2)}`;
+}
 
 const convertPositionToSeconds = (e, totalSeconds) => {
   const rect = e.currentTarget.getBoundingClientRect();
@@ -51,7 +50,7 @@ export default ({ onPlay, onPause, paused, onSeek, currentTime, duration }) => (
       </div>
     </div>
     <h4 className="timeReadout">
-      {`${convertSecToTime(currentTime)} / ${convertSecToTime(duration)}`}
+      {`${printTime(currentTime)} / ${printTime(duration)}`}
     </h4>
   </div>
 );
