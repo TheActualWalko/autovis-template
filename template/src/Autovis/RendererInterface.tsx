@@ -71,11 +71,19 @@ export default ({
     [frameRate, renderFrame]
   );
 
-  const onStartRender = useCallback(() => {
-    capturer.start();
-    updateTimeRef(startTime);
-    setRenderingVideo(true);
-  }, [capturer, setRenderingVideo, startTime]);
+
+  const onStartRender = useCallback(
+    () => {
+      pause();
+      setTimeout(() => {
+        capturer.start();
+        updateTimeRef(startTime);
+        setRenderingVideo(true);
+      });
+    },
+    [capturer, setRenderingVideo, startTime, pause]
+  );
+
 
   useEffect(() => {
     setRenderingVideo(false);
