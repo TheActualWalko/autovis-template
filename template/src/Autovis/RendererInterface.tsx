@@ -1,10 +1,11 @@
-import React, { useRef, useEffect, useState, useCallback } from 'react';
+import React, { useRef, useState, useCallback, useEffect } from 'react';
 import { StemInstantAnalysisMap, StemFullAnalysisMap, AnyScenePartSpec } from './types';
 import Controls from './Controls';
 import { updateTimeRef, getCurrentTime } from './time';
 import getInstantAnalysis from './getInstantAnalysis';
-import AudioContainer from './AudioContainer';
 import useThreeComposer from './useThreeComposer';
+import useRenderLoop from './useRenderLoop';
+import useAudio from './useAudio';
 
 const getFrameNumber = (time: number, frameRate: number) => Math.floor(
   (time * frameRate) +
@@ -36,29 +37,12 @@ export default ({
   endTime = duration,
   capturer
 }: RendererInterfaceProps) => {
-  const animationFrameRef = useRef<number | null>(null);
   const lastFrameRef = useRef<number>(-Infinity);
   const [renderingVideo, setRenderingVideo] = useState(false);
-  const [playing, setPlaying] = useState(false);
   const [ThreeComposer, render, capture] = useThreeComposer(width, height, parts);
-  const minFrame = Math.ceil(startTime * frameRate);
+  const [play, pause, seek, paused, currentTime] = useAudio(masterURL);
+  const minFrame = Math.floor(startTime * frameRate);
   const maxFrame = Math.ceil(endTime * frameRate);
-
-  const onPlay = useCallback(
-    () => {
-      setPlaying(true);
-      setRenderingVideo(false);
-    },
-    [setPlaying, setRenderingVideo]
-  );
-
-  const onPause = useCallback(
-    () => {
-      setPlaying(false);
-      setRenderingVideo(false);
-    },
-    [setPlaying, setRenderingVideo]
-  );
 
   const renderFrame = useCallback(
     (frame) => {
@@ -74,87 +58,68 @@ export default ({
     [frameRate, renderFrame]
   );
 
-  const onTimeChange = useCallback(
-    (time: number) => {
-      updateTimeRef(time);
-      if (!playing) {
-        renderFrameAtTime(time);
-      }
-    },
-    [playing, renderFrameAtTime]
-  );
-
   const onStartRender = useCallback(
     () => {
       capturer.start();
       updateTimeRef(startTime);
       setRenderingVideo(true);
-      setPlaying(true);
     },
     [capturer, setRenderingVideo, startTime]
   );
 
-  const startAnimation = useCallback(
+  useEffect(
     () => {
-      animationFrameRef.current && cancelAnimationFrame(animationFrameRef.current);
-      let animationFrame: number;
-      const animate = () => {
-        const currentTime = getCurrentTime();
-        const frame = getFrameNumber(currentTime, frameRate);
-        if (frame > maxFrame) {
-          if (renderingVideo) {
-            capturer.stop();
-            capturer.save();
-          }
-          onPause();
-          return;
-        }
-        if (renderingVideo || lastFrameRef.current !== frame) {
-          lastFrameRef.current = frame;
-          renderFrame(frame);
-          if (renderingVideo) {
-            capture(capturer);
-          }
-        }
-        animationFrame = requestAnimationFrame(animate);
-        animationFrameRef.current = animationFrame;
-      }
-      animate();
-      return () => {
-        animationFrame && cancelAnimationFrame(animationFrame);
-      }
+      setRenderingVideo(false);
     },
-    [renderingVideo, animationFrameRef, onPause, capturer, frameRate, maxFrame, renderFrame, capture]
-  );
-
-  const stopAnimation = useCallback(
-    () => animationFrameRef.current && cancelAnimationFrame(animationFrameRef.current),
-    []
+    [paused],
   );
 
   useEffect(
     () => {
-      playing ? startAnimation() : stopAnimation()
+      updateTimeRef(currentTime);
+      if (paused) {
+        renderFrameAtTime(currentTime);
+      }
     },
-    [playing, startAnimation, stopAnimation]
+    [paused, renderFrameAtTime, currentTime]
   );
+
+  const renderLoop = useCallback(() => {
+    const currentTime = getCurrentTime();
+    const frame = getFrameNumber(currentTime, frameRate);
+
+    if (frame > maxFrame) {
+      if (renderingVideo) {
+        capturer.stop();
+        capturer.save();
+      }
+      setRenderingVideo(false);
+      return;
+    }
+
+    if (renderingVideo || lastFrameRef.current !== frame) {
+      lastFrameRef.current = frame;
+      renderFrame(frame);
+      if (renderingVideo) {
+        capture(capturer);
+      }
+    }
+  }, [capturer, frameRate, maxFrame, renderingVideo, capture, renderFrame]);
+
+  useRenderLoop(renderLoop, !paused || renderingVideo);
 
   return (
     <div style={{textAlign: 'center'}}>
       {renderingVideo ? null : (
         <>
-          <AudioContainer onTimeChange={onTimeChange} onPlay={onPlay} onPause={onPause} src={masterURL}>
-            {({ currentTime, paused, play, pause, seek }) => (
-              <Controls
-                startTime={minFrame}
-                paused={paused}
-                onPlay={play}
-                onPause={pause}
-                onSeek={seek}
-                currentTime={currentTime}
-              />
-            )}
-          </AudioContainer>
+          <Controls
+            startTime={minFrame}
+            paused={paused}
+            onPlay={play}
+            onPause={pause}
+            onSeek={seek}
+            currentTime={currentTime}
+          />
           <div style={{ position: 'fixed', top: 0, right: 0, width: 'auto', textAlign: 'right', zIndex: 3 }}>
             <button
               onClick={() => {
