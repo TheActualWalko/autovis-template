@@ -30,6 +30,8 @@ const initComposer = (width: number, height: number, parts: AnyScenePartSpec[]):
   return composer;
 }
 
+let rerenderWarnings = 0;
+
 export default (width: number, height: number, parts: AnyScenePartSpec[]) => {
   const composer = useMemo(() => initComposer(width, height, parts), [width, height, parts]);
   const lastTimeRef = useRef<number>(-Infinity);
@@ -67,7 +69,10 @@ export default (width: number, height: number, parts: AnyScenePartSpec[]) => {
         updatableParts.forEach(([component, updater]) => updater!(component, analysis, time));
         composer.render();
       } else {
-        console.warn('attempt to re-render the same frame');
+        rerenderWarnings ++;
+        if (rerenderWarnings > 100) {
+          console.warn('many attempts to re-render the same frame');
+        }
       }
       lastTimeRef.current = time;
     },

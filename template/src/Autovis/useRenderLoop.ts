@@ -1,34 +1,27 @@
-import { useRef, useCallback, useEffect } from 'react';
+import { useRef, useEffect } from 'react';
+
 
 export default (renderFunction: () => void, playing: boolean) => {
   const animationFrameRef = useRef<number | null>(null);
 
-  const startAnimation = useCallback(
+  useEffect(
     () => {
       animationFrameRef.current && cancelAnimationFrame(animationFrameRef.current);
       let animationFrame: number;
-      const animate = () => {
-        renderFunction();
-        animationFrame = requestAnimationFrame(animate);
-        animationFrameRef.current = animationFrame;
+      if (playing) {
+        const animate = () => {
+          if (playing) {
+            renderFunction();
+            animationFrame = requestAnimationFrame(animate);
+            animationFrameRef.current = animationFrame;
+          }
+        }
+        animate();
       }
-      animate();
       return () => {
         animationFrame && cancelAnimationFrame(animationFrame);
       }
     },
-    [renderFunction]
-  );
-
-  const stopAnimation = useCallback(
-    () => animationFrameRef.current && cancelAnimationFrame(animationFrameRef.current),
-    []
-  );
-
-  useEffect(
-    () => {
-      playing ? startAnimation() : stopAnimation()
-    },
-    [playing, startAnimation, stopAnimation]
+    [playing, renderFunction]
   );
 }
