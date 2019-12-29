@@ -1,0 +1,84 @@
+.App {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.player {
+  width: 80%;
+  height: 40px;
+}
+
+.controls {
+  display: grid;
+  height: 40px;
+  grid-template-rows: 40px;
+  grid-template-columns: 13% auto 20%;
+  grid-template-areas: "playButton timeline timeReadout";
+  align-items: center;
+  background-color: #eeeeee;
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+}
+
+canvas {
+  width: 100%;
+  height: 100%;
+  background: black;
+}
+
+button.play {
+  grid-area: playButton;
+  border-radius: 7px;
+  font-size: 18px;
+  outline: none;
+  height: 30px;
+  margin: 10px;
+  color: #4d4d4d;
+}
+
+.timeline {
+  grid-area: timeline;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  margin: 0 25px 0 25px;
+}
+
+.timeline > .progressLine {
+  position: relative;
+  width: 100%;
+  height: 4px;
+  background-color: rgb(173, 173, 173);
+  display: flex;
+  border-radius: 5px;
+  align-items: center;
+}
+
+.progressSlider {
+  position: absolute;
+  display: flex;
+  justify-content: center;
+  height: 20px;
+  width: 20px;
+  border-radius: 20px;
+  background-color: rgb(80, 80, 80);
+  right: -10px;
+}
+
+.progressSliderWrapper {
+  position: absolute;
+  width: 100px;
+  height: 20px;
+}
+
+.timeReadout {
+  grid-area: timeReadout;
+  font-weight: lighter;
+  margin: 0;
+  text-align: center;
+}
