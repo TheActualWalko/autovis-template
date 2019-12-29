@@ -59,7 +59,7 @@ export default (width: number, height: number, parts: AnyScenePartSpec[]) => {
     [onResize]
   );
 
-  const updatableParts = useMemo(() => parts.filter(([component, updater]) => Boolean(updater)), [parts]);
+  const updatableParts = useMemo(() => parts.filter(([_, updater]) => Boolean(updater)), [parts]);
 
   const render = useCallback(
     (analysis: StemInstantAnalysisMap, time: number) => {
