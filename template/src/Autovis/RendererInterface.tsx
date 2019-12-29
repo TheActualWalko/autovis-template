@@ -12,6 +12,8 @@ const getFrameNumber = (time: number, frameRate: number) => Math.floor(
   1/(10 * frameRate) // this compensates for some floating point inaccuracy induced by the non-realtime render
 );
 
+let saved = false;
+
 interface RendererInterfaceProps {
   width: number;
   height: number;
@@ -91,7 +93,12 @@ export default ({
     if (frame > maxFrame) {
       if (renderingVideo) {
         capturer.stop();
-        capturer.save();
+        if (!saved) {
+          saved = true;
+          capturer.save();
+        } else {
+          console.warn('would have attempted a repeat save');
+        }
       }
       setRenderingVideo(false);
       return;
