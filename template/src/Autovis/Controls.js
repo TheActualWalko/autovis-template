@@ -18,7 +18,7 @@ export default ({ onPlay, onPause, paused, onSeek, currentTime, duration }) => (
         paused ? onPlay() : onPause();
       }}
     >
-      {paused ? "Play" : "Pause"}
+      {paused ? 'Play' : 'Pause'}
     </button>
     <div
       className="timeline"
