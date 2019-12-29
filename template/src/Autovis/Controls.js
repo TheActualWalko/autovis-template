@@ -1,6 +1,7 @@
 import React from 'react';
 import './controls.css';
 import toPercent from './toPercent';
+import printTime from './printTime';
 
 const getEventXPositionRatio = (e) => {
   const rect = e.currentTarget.getBoundingClientRect();
