@@ -1,16 +1,20 @@
-import React, { useRef, useState, useCallback, useEffect } from 'react';
-import { StemInstantAnalysisMap, StemFullAnalysisMap, AnyScenePartSpec } from './types';
-import Controls from './Controls';
-import { updateTimeRef, getCurrentTime } from './time';
-import getInstantAnalysis from './getInstantAnalysis';
-import useThreeComposer from './useThreeComposer';
-import useRenderLoop from './useRenderLoop';
-import useAudio from './useAudio';
+import React, { useRef, useState, useCallback, useEffect } from "react";
+import {
+  StemInstantAnalysisMap,
+  StemFullAnalysisMap,
+  AnyScenePartSpec
+} from "./types";
+import Controls from "./Controls";
+import { updateTimeRef, getCurrentTime } from "./time";
+import getInstantAnalysis from "./getInstantAnalysis";
+import useThreeComposer from "./useThreeComposer";
+import useRenderLoop from "./useRenderLoop";
+import useAudio from "./useAudio";
 
-const getFrameNumber = (time: number, frameRate: number) => Math.floor(
-  (time * frameRate) +
-  1/(10 * frameRate) // this compensates for some floating point inaccuracy induced by the non-realtime render
-);
+const getFrameNumber = (time: number, frameRate: number) =>
+  Math.floor(
+    time * frameRate + 1 / (10 * frameRate) // this compensates for some floating point inaccuracy induced by the non-realtime render
+  );
 
 let saved = false;
 
@@ -41,14 +45,21 @@ export default ({
 }: RendererInterfaceProps) => {
   const lastFrameRef = useRef<number>(-Infinity);
   const [renderingVideo, setRenderingVideo] = useState(false);
-  const [ThreeComposer, render, capture] = useThreeComposer(width, height, parts);
+  const [ThreeComposer, render, capture] = useThreeComposer(
+    width,
+    height,
+    parts
+  );
   const [play, pause, seek, paused, currentTime] = useAudio(masterURL);
   const minFrame = Math.floor(startTime * frameRate);
   const maxFrame = Math.ceil(endTime * frameRate);
 
   const renderFrame = useCallback(
     (frame: number) => {
-      const instantAnalysis: StemInstantAnalysisMap = getInstantAnalysis(stemAnalysis, frame);
+      const instantAnalysis: StemInstantAnalysisMap = getInstantAnalysis(
+        stemAnalysis,
+        frame
+      );
       const frameTime = frame / frameRate;
       render(instantAnalysis, frameTime);
     },
@@ -60,31 +71,22 @@ export default ({
     [frameRate, renderFrame]
   );
 
-  const onStartRender = useCallback(
-    () => {
-      capturer.start();
-      updateTimeRef(startTime);
-      setRenderingVideo(true);
-    },
-    [capturer, setRenderingVideo, startTime]
-  );
+  const onStartRender = useCallback(() => {
+    capturer.start();
+    updateTimeRef(startTime);
+    setRenderingVideo(true);
+  }, [capturer, setRenderingVideo, startTime]);
 
-  useEffect(
-    () => {
-      setRenderingVideo(false);
-    },
-    [paused],
-  );
+  useEffect(() => {
+    setRenderingVideo(false);
+  }, [paused]);
 
-  useEffect(
-    () => {
-      updateTimeRef(currentTime);
-      if (paused) {
-        renderFrameAtTime(currentTime);
-      }
-    },
-    [paused, renderFrameAtTime, currentTime]
-  );
+  useEffect(() => {
+    updateTimeRef(currentTime);
+    if (paused) {
+      renderFrameAtTime(currentTime);
+    }
+  }, [paused, renderFrameAtTime, currentTime]);
 
   const renderLoop = useCallback(() => {
     const currentTime = getCurrentTime();
@@ -97,7 +99,7 @@ export default ({
           saved = true;
           capturer.save();
         } else {
-          console.warn('would have attempted a repeat save');
+          console.warn("would have attempted a repeat save");
         }
       }
       setRenderingVideo(false);
@@ -116,18 +118,27 @@ export default ({
   useRenderLoop(renderLoop, !paused || renderingVideo);
 
   return (
-    <div style={{textAlign: 'center'}}>
+    <div style={{ textAlign: "center" }}>
       {renderingVideo ? null : (
         <>
           <Controls
-            startTime={minFrame}
             paused={paused}
             onPlay={play}
             onPause={pause}
             onSeek={seek}
             currentTime={currentTime}
+            duration={duration}
           />
-          <div style={{ position: 'fixed', top: 0, right: 0, width: 'auto', textAlign: 'right', zIndex: 3 }}>
+          <div
+            style={{
+              position: "fixed",
+              top: 40,
+              right: 0,
+              width: "auto",
+              textAlign: "right",
+              zIndex: 3
+            }}
+          >
             <button
               onClick={() => {
                 localStorage.clear();
@@ -139,7 +150,11 @@ export default ({
             <button
               onClick={() => {
                 /* eslint-disable */
-                if (confirm("Warning: This process is in Beta. It can be very slow, and if your browser is hidden your render may fail. Video will not include sound.")) {
+                if (
+                  confirm(
+                    "Warning: This process is in Beta. It can be very slow, and if your browser is hidden your render may fail. Video will not include sound."
+                  )
+                ) {
                   onStartRender();
                 }
                 /* eslint-enable */
@@ -150,7 +165,16 @@ export default ({
           </div>
         </>
       )}
-      <ThreeComposer style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 1 }} />
+      <ThreeComposer
+        style={{
+          position: "fixed",
+          top: 40,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          zIndex: 1
+        }}
+      />
     </div>
-  )
-}
+  );
+};

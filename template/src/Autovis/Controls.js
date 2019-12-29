@@ -23,31 +23,35 @@ const convertcurrentTimeToSliderWidth = (currentSeconds, totalSeconds) => {
 };
 
 export default ({ onPlay, onPause, paused, onSeek, currentTime, duration }) => (
-  <div className="player">
-    <div className="controls">
-      <button className="play" onClick={() => (paused ? onPlay() : onPause())}>
-        {paused ? "Pause" : "Play"}
-      </button>
-      <div
-        className="timeline"
-        onClick={event => {
-          onSeek(convertPositionToSeconds(event, duration));
-        }}
-      >
-        <div className="progressLine">
-          <div
-            className="progressSliderWrapper"
-            style={{
-              width: convertcurrentTimeToSliderWidth(currentTime, duration)
-            }}
-          >
-            <div className="progressSlider"></div>
-          </div>
+  <div className="controls">
+    <button
+      className="play"
+      onClick={() => {
+        console.log(paused);
+        paused ? onPlay() : onPause();
+      }}
+    >
+      {paused ? "Play" : "Pause"}
+    </button>
+    <div
+      className="timeline"
+      onClick={event => {
+        onSeek(convertPositionToSeconds(event, duration));
+      }}
+    >
+      <div className="progressLine">
+        <div
+          className="progressSliderWrapper"
+          style={{
+            width: convertcurrentTimeToSliderWidth(currentTime, duration)
+          }}
+        >
+          <div className="progressSlider"></div>
         </div>
       </div>
-      <h4 className="timeReadout">
-        {`${convertSecToTime(currentTime)} / ${convertSecToTime(duration)}`}
-      </h4>
     </div>
+    <h4 className="timeReadout">
+      {`${convertSecToTime(currentTime)} / ${convertSecToTime(duration)}`}
+    </h4>
   </div>
 );
