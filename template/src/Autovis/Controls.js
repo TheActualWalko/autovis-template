@@ -15,7 +15,6 @@ export default ({ onPlay, onPause, paused, onSeek, currentTime, duration }) => (
     <button
       className="play"
       onClick={() => {
-        console.log(paused);
         paused ? onPlay() : onPause();
       }}
     >
