@@ -1,24 +1,12 @@
-import React from "react";
-import "./controls.css";
-import pad from './pad';
+import React from 'react';
+import './controls.css';
+import toPercent from './toPercent';
 
-
-const printTime = (currentTime) => {
-  const minutes = Math.floor(currentTime / 60);
-  const seconds = Math.floor(currentTime % 60);
-  return `${pad(minutes, 2)}:${pad(seconds, 2)}`;
-}
-
-const convertPositionToSeconds = (e, totalSeconds) => {
+const getEventXPositionRatio = (e) => {
   const rect = e.currentTarget.getBoundingClientRect();
   const mouseXRel = e.clientX - rect.x;
-  const seekRatio = Math.min(Math.max(0, mouseXRel / rect.width), 1);
-  const seconds = seekRatio * totalSeconds;
-  return seconds;
-};
-
-const convertcurrentTimeToSliderWidth = (currentSeconds, totalSeconds) => {
-  return `${(100 * currentSeconds) / totalSeconds}%`;
+  const positionRatio = Math.min(Math.max(0, mouseXRel / rect.width), 1);
+  return positionRatio;
 };
 
 export default ({ onPlay, onPause, paused, onSeek, currentTime, duration }) => (
@@ -35,14 +23,14 @@ export default ({ onPlay, onPause, paused, onSeek, currentTime, duration }) => (
     <div
       className="timeline"
       onClick={event => {
-        onSeek(convertPositionToSeconds(event, duration));
+        onSeek(getEventXPositionRatio(event) * duration);
       }}
     >
       <div className="progressLine">
         <div
           className="progressSliderWrapper"
           style={{
-            width: convertcurrentTimeToSliderWidth(currentTime, duration)
+            width: toPercent(currentTime/duration)
           }}
         >
           <div className="progressSlider"></div>
