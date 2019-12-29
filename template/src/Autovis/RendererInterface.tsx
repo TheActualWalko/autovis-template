@@ -45,7 +45,7 @@ export default ({
   const maxFrame = Math.ceil(endTime * frameRate);
 
   const renderFrame = useCallback(
-    (frame) => {
+    (frame: number) => {
       const instantAnalysis: StemInstantAnalysisMap = getInstantAnalysis(stemAnalysis, frame);
       const frameTime = frame / frameRate;
       render(instantAnalysis, frameTime);
