@@ -62,9 +62,12 @@ export default ({
 
   const onStartRender = useCallback(
     () => {
-      capturer.start();
-      updateTimeRef(startTime);
-      setRenderingVideo(true);
+      pause();
+      setTimeout(() => {
+        capturer.start();
+        updateTimeRef(startTime);
+        setRenderingVideo(true);
+      });
     },
     [capturer, setRenderingVideo, startTime]
   );
