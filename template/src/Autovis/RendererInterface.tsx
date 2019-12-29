@@ -69,7 +69,7 @@ export default ({
         setRenderingVideo(true);
       });
     },
-    [capturer, setRenderingVideo, startTime]
+    [capturer, setRenderingVideo, startTime, pause]
   );
 
   useEffect(
