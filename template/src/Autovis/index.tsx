@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import './index.css';
-import RendererInterface from './RendererInterface';
+import StudioRendererInterface from './StudioRendererInterface';
 import getAudioDuration from './getAudioDuration';
 import { ScenePartSpec, AnyScenePartSpec, ScenePartUpdater, StemFullAnalysisMap } from './types';
 import getStemAnalysis from './getStemAnalysis';
@@ -52,7 +52,7 @@ export default ({
 
   if (masterDuration && stemAnalysis) {
     return (
-      <RendererInterface
+      <StudioRendererInterface
         width={width}
         height={height}
         duration={masterDuration}
