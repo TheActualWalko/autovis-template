@@ -131,6 +131,9 @@ export default ({
             currentTime={currentTime}
           />
           <div style={{ position: 'fixed', top: 0, right: 0, width: 'auto', textAlign: 'right', zIndex: 3 }}>
+            <button onClick={() => window.location.href = `${window.location.protocol}//${window.location.host}?live=true`}>
+              Switch to Live Input Setup
+            </button>
             <button
               onClick={() => {
                 localStorage.clear();

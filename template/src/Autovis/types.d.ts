@@ -1,5 +1,6 @@
 export interface StemInstantAnalysis {
-  amplitude: number
+  amplitude: number;
+  [key: string]: number;
 }
 
 export interface StemInstantAnalysisMap {
