@@ -122,15 +122,7 @@ export default ({
     <div style={{textAlign: 'center'}}>
       {renderingVideo ? null : (
         <>
-          <Controls
-            paused={paused}
-            onPlay={play}
-            onPause={pause}
-            onSeek={seek}
-            currentTime={currentTime}
-            duration={duration}
-          />
-          <div style={{ position: 'fixed', top: 40, right: 0, width: 'auto', textAlign: 'right', zIndex: 3 }}>
+          <div style={{ position: 'fixed', top: 0, right: 0, width: 'auto', textAlign: 'right', zIndex: 3 }}>
             <button onClick={() => window.location.href = `${window.location.protocol}//${window.location.host}?live=true`}>
               Switch to Live Input Setup
             </button>
@@ -156,7 +148,15 @@ export default ({
           </div>
         </>
       )}
-      <ThreeComposer style={{ position: 'fixed', top: 40, left: 0, right: 0, bottom: 0, zIndex: 1 }} />
+      <ThreeComposer style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 1 }} />
+      <Controls
+            paused={paused}
+            onPlay={play}
+            onPause={pause}
+            onSeek={seek}
+            currentTime={currentTime}
+            duration={duration}
+          />
     </div>
   )
 }

@@ -1,18 +1,6 @@
-.App {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.player {
-  width: 80%;
-  height: 40px;
-}
 
 .controls {
+  position: fixed;
   display: grid;
   height: 40px;
   grid-template-rows: 40px;
@@ -22,12 +10,10 @@
   background-color: #eeeeee;
   border-bottom-left-radius: 8px;
   border-bottom-right-radius: 8px;
-}
-
-canvas {
-  width: 100%;
-  height: 100%;
-  background: black;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 1;
 }
 
 button.play {
