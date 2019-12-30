@@ -7,7 +7,7 @@ interface AutovisProps {
   width: number;
   height: number;
   sceneParts: AnyScenePartSpec[];
-  analysisFrequencies: number[];
+  analysisFrequencies: {[key: string]: number};
 }
 
 export default ({

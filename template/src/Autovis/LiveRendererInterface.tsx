@@ -8,7 +8,7 @@ interface RendererInterfaceProps {
   width: number;
   height: number;
   parts: AnyScenePartSpec[];
-  analysisFrequencies: number[];
+  analysisFrequencies: {[key: string]: number};
 }
 
 const computeAmplitude = (callback: (amplitude: number) => void) => (e: AudioProcessingEvent) => {
@@ -23,9 +23,13 @@ const computeAmplitude = (callback: (amplitude: number) => void) => (e: AudioPro
   callback(amplitude);
 };
 
-const getInitialAmplitudes = (frequencies: number[]): {[key: string]: number} => frequencies.reduce((acc, cur) => ({...acc, [`f${cur}`]: 0}), {});
+const getInitialAmplitudes = (frequencies: {[key: string]: number}): {[key: string]: number} => (
+  Object
+    .keys(frequencies)
+    .reduce((acc, cur) => ({...acc, [cur]: 0}), {})
+);
 
-const useAudioInput = (bandpassFrequencies: number[]) => {
+const useAudioInput = (bandpassFrequencies: {[key: string]: number}) => {
   const [analysis, setAnalysis] = useState({ amplitude: 0, ...getInitialAmplitudes(bandpassFrequencies) });
   const [receivingAudio, setReceivingAudio] = useState(false);
   const receiveStream = useCallback(
@@ -33,17 +37,20 @@ const useAudioInput = (bandpassFrequencies: number[]) => {
       const source = audioContext.createMediaStreamSource(stream);
       const processor = audioContext.createScriptProcessor(1024, 1, 1);
       const bandAmplitudes = getInitialAmplitudes(bandpassFrequencies);
-      bandpassFrequencies.forEach((frequency) => {
-        const filter = audioContext.createBiquadFilter();
-        filter.frequency.setValueAtTime(frequency, audioContext.currentTime);
-        filter.type = 'bandpass';
-        const processor = audioContext.createScriptProcessor(1024, 1, 1);
-        processor.onaudioprocess = computeAmplitude((a) => bandAmplitudes[`f${frequency}`] = a);
-        source.connect(filter);
-        filter.connect(processor);
-        processor.connect(audioContext.destination);
-        return processor;
-      });
+      Object
+        .keys(bandpassFrequencies)
+        .forEach((name) => {
+          const frequency = bandpassFrequencies[name];
+          const filter = audioContext.createBiquadFilter();
+          filter.frequency.setValueAtTime(frequency, audioContext.currentTime);
+          filter.type = 'bandpass';
+          const processor = audioContext.createScriptProcessor(1024, 1, 1);
+          processor.onaudioprocess = computeAmplitude((a) => bandAmplitudes[name] = a);
+          source.connect(filter);
+          filter.connect(processor);
+          processor.connect(audioContext.destination);
+          return processor;
+        });
       source.connect(processor);
       processor.connect(audioContext.destination);
 
