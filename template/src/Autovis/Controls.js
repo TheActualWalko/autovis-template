@@ -10,7 +10,7 @@ const getXPositionRatio = (xPos, element) => {
   return positionRatio;
 };
 
-export const useMousePosition = () => {
+export const useDragState = () => {
   const [draggingObject, setDraggingObject] = useState({dragging:false, x: 0,y:0});
 
   useEffect(() => {
@@ -49,7 +49,7 @@ export const useMousePosition = () => {
 };
 
 export default ({ onPlay, onPause, paused, onSeek, currentTime, duration }) => {
-  const dragging = useMousePosition();
+  const dragging = useDragState();
   
   useEffect(() => {
     const sliderElement = document.querySelector('.timeline');
