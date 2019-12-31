@@ -10,6 +10,7 @@ const getXPositionRatio = (xPos, element) => {
   return positionRatio;
 };
 
+        paused ? onPlay() : onPause();
 export const useMousePosition = () => {
   const [draggingObject, setDraggingObject] = useState({dragging:false, x: 0,y:0});
   useEffect(() => {
