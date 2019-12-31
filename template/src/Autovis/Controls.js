@@ -12,9 +12,9 @@ const getXPositionRatio = (xPos, element) => {
 
 export const useMousePosition = () => {
   const [draggingObject, setDraggingObject] = useState({dragging:false, x: 0,y:0});
+
   useEffect(() => {
     const setMouseDown = (e) => {
-      console.log(e.target.className);
       if (e.target.className === 'progressLine' ||
       e.target.className === 'timeline' ||
       e.target.className === 'progressSlider' ||
@@ -30,7 +30,9 @@ export const useMousePosition = () => {
     }
 
     const setMouseUp = (e) => {
+      if (draggingObject.dragging === true) {
         setDraggingObject({...draggingObject, dragging: false});
+      }
     }
 
     window.addEventListener("mousedown", setMouseDown);
