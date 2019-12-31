@@ -46,43 +46,37 @@ export const useMousePosition = () => {
   return draggingObject;
 };
 
-export default ({ onPlay, onPause, paused, onSeek, currentTime, duration }) => {
-  const dragging = useMousePosition();
-  
-  useEffect(() => {
-    const sliderElement = document.querySelector('.timeline');
-    onSeek(getXPositionRatio(dragging.x,sliderElement) * duration)
-  },[dragging]);
+export default ({ onPlay, onPause, paused, onSeek, currentTime, duration }) =>
+  {
+    const dragging = useMousePosition();
+    
+    useEffect(() => {
+      const sliderElement = document.querySelector('.timeline');
+      onSeek(getXPositionRatio(dragging.x,sliderElement) * duration)
+    },[dragging]);
 
-  return (
-    <div className="controls">
-      <button
-        className="play"
-        style={{userSelect:'none'}}
-        onClick={() => paused ? onPlay() : onPause()}
-      >   
-        {paused ? 'Play' : 'Pause'}
-      </button>
-      <button
-        className="back"
-        style={{userSelect:'none'}}
-        onClick={() => onSeek(0)}
-      >   
-        {'<|'}
-      </button>
-      <div className="timeline">
-        <div className="progressLine">
-          <div className="progressSliderWrapper"
-            style={{width: toPercent(currentTime/duration)}}
-          >
-            <div className="progressSlider"></div>
+    return (
+      <div className="controls">
+        <button
+          className="play"
+          style={{userSelect:'none'}}
+          onClick={() => paused ? onPlay() : onPause()}
+        >   
+          {paused ? 'Play' : 'Pause'}
+        </button>
+        <div className="timeline">
+          <div className="progressLine">
+            <div className="progressSliderWrapper"
+              style={{width: toPercent(currentTime/duration)}}
+            >
+              <div className="progressSlider"></div>
+            </div>
           </div>
         </div>
+        <h4 className="timeReadout">
+          {`${printTime(currentTime)} / ${printTime(duration)}`}
+        </h4>
       </div>
-      <h4 className="timeReadout">
-        {`${printTime(currentTime)} / ${printTime(duration)}`}
-      </h4>
-    </div>
-  )
-};
+    )
+  };
 

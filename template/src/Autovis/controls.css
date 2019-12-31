@@ -4,8 +4,8 @@
   display: grid;
   height: 40px;
   grid-template-rows: 40px;
-  grid-template-columns: 13% 100px auto 20%;
-  grid-template-areas: "playButton backButton timeline timeReadout";
+  grid-template-columns: 13% auto 20%;
+  grid-template-areas: "playButton timeline timeReadout";
   align-items: center;
   background-color: #eeeeee;
   border-bottom-left-radius: 8px;
@@ -14,15 +14,6 @@
   left: 0;
   right: 0;
   z-index: 1;
-}
-
-button.back {
-  grid-area: backButton;
-  border-radius: 7px;
-  outline: none;
-  height: 25px;
-  margin: 10px;
-  color: #4d4d4d;
 }
 
 button.play {
