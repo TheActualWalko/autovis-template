@@ -1,4 +1,4 @@
-import React, {useState,useEffect} from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import './controls.css';
 import toPercent from './toPercent';
 import printTime from './printTime';
@@ -6,8 +6,7 @@ import printTime from './printTime';
 const getXPositionRatio = (xPos, element) => {
   const rect = element.getBoundingClientRect();
   const mouseXRel = xPos - rect.x;
-  const positionRatio = Math.min(Math.max(0, mouseXRel / rect.width), 1);
-  return positionRatio;
+  return Math.min(Math.max(0, mouseXRel / rect.width), 1);
 };
 
 export const useDragState = () => {
@@ -50,11 +49,13 @@ export const useDragState = () => {
 
 export default ({ onPlay, onPause, paused, onSeek, currentTime, duration }) => {
   const dragging = useDragState();
+  const sliderElementRef = useRef(null);
   
   useEffect(() => {
-    const sliderElement = document.querySelector('.timeline');
-    onSeek(getXPositionRatio(dragging.x,sliderElement) * duration)
-  },[dragging]);
+    if (sliderElementRef.current) {
+      onSeek(getXPositionRatio(dragging.x, sliderElementRef.current) * duration)
+    }
+  }, [dragging]);
 
   return (
     <div className="controls">
@@ -70,13 +71,11 @@ export default ({ onPlay, onPause, paused, onSeek, currentTime, duration }) => {
         style={{userSelect:'none'}}
         onClick={() => onSeek(0)}
       >   
-        {'|<'}
+        {'|<<'}
       </button>
-      <div className="timeline">
+      <div className="timeline" ref={sliderElementRef}>
         <div className="progressLine">
-          <div className="progressSliderWrapper"
-            style={{width: toPercent(currentTime/duration)}}
-          >
+          <div className="progressSliderWrapper" style={{width: toPercent(currentTime/duration)}}>
             <div className="progressSlider"></div>
           </div>
         </div>
