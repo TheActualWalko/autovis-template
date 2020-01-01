@@ -1,12 +1,13 @@
 import React from 'react';
 import './index.css';
 import LiveRendererInterface from './LiveRendererInterface';
-import { AnyScenePartSpec } from './types';
+import { AnyAsyncScenePartSpec } from './types';
+import useAsyncParts from './useAsyncParts';
 
 interface AutovisProps {
   width: number;
   height: number;
-  sceneParts: AnyScenePartSpec[];
+  sceneParts: AnyAsyncScenePartSpec[];
   analysisFrequencies: {[key: string]: number};
 }
 
@@ -15,11 +16,15 @@ export default ({
   height,
   sceneParts,
   analysisFrequencies,
-}: AutovisProps) => (
-  <LiveRendererInterface
-    width={width}
-    height={height}
-    parts={sceneParts}
-    analysisFrequencies={analysisFrequencies}
-  />
-);
+}: AutovisProps) => {
+  const parts = useAsyncParts(sceneParts);
+
+  return (
+    <LiveRendererInterface
+      width={width}
+      height={height}
+      parts={parts}
+      analysisFrequencies={analysisFrequencies}
+    />
+  );
+};
