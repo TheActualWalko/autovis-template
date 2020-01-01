@@ -70,7 +70,7 @@ export default ({ onPlay, onPause, paused, onSeek, currentTime, duration }) => {
         style={{userSelect:'none'}}
         onClick={() => onSeek(0)}
       >   
-        {'<|'}
+        {'|<'}
       </button>
       <div className="timeline">
         <div className="progressLine">
