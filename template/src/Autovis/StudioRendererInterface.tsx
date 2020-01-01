@@ -43,7 +43,6 @@ export default ({
   const [renderingVideo, setRenderingVideo] = useState(false);
   const [ThreeComposer, render, capture] = useThreeComposer(width, height, parts);
   const [play, pause, seek, paused, currentTime] = useAudio(masterURL);
-  const minFrame = Math.floor(startTime * frameRate);
   const maxFrame = Math.ceil(endTime * frameRate);
 
   const renderFrame = useCallback(

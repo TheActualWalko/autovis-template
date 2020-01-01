@@ -1,4 +1,8 @@
 
+button {
+  user-select:'none'
+}
+
 .controls {
   position: fixed;
   display: grid;

@@ -10,7 +10,7 @@ const getXPositionRatio = (xPos, element) => {
 };
 
 export const useDragState = (element) => {
-  const [draggingObject, setDraggingObject] = useState({ dragging:false, x: 0,y:0 });
+  const [draggingObject, setDraggingObject] = useState({ dragging:false, x: 0, y: 0 });
 
   useEffect(() => {
     const setMouseDown = (e) => {
@@ -21,7 +21,7 @@ export const useDragState = (element) => {
 
     const setMouseMove = (e) => {
       if (draggingObject.dragging === true) {
-        setDraggingObject({...draggingObject, x: e.clientX});
+        setDraggingObject({ ...draggingObject, x: e.clientX });
       }
     }
 
@@ -40,7 +40,7 @@ export const useDragState = (element) => {
       window.removeEventListener('mouseup', setMouseUp);
       window.removeEventListener('mousemove', setMouseMove);
     };
-  }, [draggingObject]);
+  }, [draggingObject, element]);
   return draggingObject;
 };
 
@@ -48,25 +48,22 @@ export default ({ onPlay, onPause, paused, onSeek, currentTime, duration }) => {
   const sliderElementRef = useRef(null);
   const dragging = useDragState(sliderElementRef);
 
-  
   useEffect(() => {
     if (sliderElementRef.current) {
       onSeek(getXPositionRatio(dragging.x, sliderElementRef.current) * duration)
     }
-  }, [dragging]);
+  }, [dragging, duration, onSeek]);
 
   return (
     <div className="controls">
       <button
         className="play"
-        style={{ userSelect:'none' }}
         onClick={() => paused ? onPlay() : onPause()}
       >   
         { paused ? 'Play' : 'Pause '}
       </button>
       <button
         className="back"
-        style={{ userSelect:'none' }}
         onClick={() => onSeek(0)}
       >   
         {'|<<'}
