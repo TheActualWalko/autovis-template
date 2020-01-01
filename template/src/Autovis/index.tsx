@@ -2,11 +2,11 @@ import React, { useEffect, useState } from 'react';
 import './index.css';
 import StudioRendererInterface from './StudioRendererInterface';
 import getAudioDuration from './getAudioDuration';
-import { ScenePartSpec, AnyScenePartSpec, ScenePartUpdater, StemFullAnalysisMap } from './types';
+import { AsyncScenePartSpec, AnyAsyncScenePartSpec, ScenePartUpdater, StemFullAnalysisMap, AnyScenePartSpec } from './types';
 import getStemAnalysis from './getStemAnalysis';
 
-export function part<T>(object: T, update?: ScenePartUpdater<T>){
-  return [object, update] as ScenePartSpec<T>;
+export function part<T>(object: T | Promise<T>, update?: ScenePartUpdater<T>){
+  return [object instanceof Promise ? object : Promise.resolve(object), update] as AsyncScenePartSpec<T>;
 }
 
 interface AutovisProps {
@@ -15,7 +15,7 @@ interface AutovisProps {
   height: number;
   masterURL: string;
   stemURLs: {[key: string]: string};
-  sceneParts: AnyScenePartSpec[];
+  sceneParts: AnyAsyncScenePartSpec[];
   startTime?: number;
   endTime?: number;
 }
@@ -43,14 +43,26 @@ export default ({
 }: AutovisProps) => {
   const [
     { masterDuration, stemAnalysis, error },
-    receiveAudioAnalysis
+    setAudioAnalysis
   ] = useState<{ masterDuration?: number, stemAnalysis?: StemFullAnalysisMap, error?: Error }>({});
 
-  useEffect(() => {
-    getAudioAnalysis(masterURL, stemURLs, frameRate).then(receiveAudioAnalysis);
-  }, [masterURL, stemURLs, frameRate, receiveAudioAnalysis]);
+  const [parts, setParts] = useState<AnyScenePartSpec[]>([]);
 
-  if (masterDuration && stemAnalysis) {
+  useEffect(() => {
+    getAudioAnalysis(masterURL, stemURLs, frameRate).then(setAudioAnalysis);
+  }, [masterURL, stemURLs, frameRate, setAudioAnalysis]);
+
+  useEffect(
+    () => {
+      Promise
+        .all(sceneParts.map(([objectPromise]) => objectPromise))
+        .then((objects) => sceneParts.map(([promise, updater], index) => [objects[index], updater]) as AnyScenePartSpec[])
+        .then(setParts);
+    },
+    [sceneParts, setParts]
+  );
+
+  if (masterDuration && stemAnalysis && parts.length > 0) {
     return (
       <StudioRendererInterface
         width={width}
@@ -59,7 +71,7 @@ export default ({
         frameRate={frameRate}
         stemAnalysis={stemAnalysis}
         masterURL={masterURL}
-        parts={sceneParts}
+        parts={parts}
         startTime={startTime}
         endTime={endTime}
         capturer={new CCapture({ format: 'webm', framerate: frameRate, quality: 100, display: true })}

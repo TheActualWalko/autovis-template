@@ -22,6 +22,11 @@ export type ScenePartSpec<T> = [
   ScenePartUpdater<T>?,
 ]
 
+export type AsyncScenePartSpec<T> = [
+  Promise<T>,
+  ScenePartUpdater<T>?,
+]
+
 export type AnyScenePartSpec = (
   ScenePartSpec<THREE.PointLight> |
   ScenePartSpec<THREE.AmbientLight> |
@@ -35,4 +40,19 @@ export type AnyScenePartSpec = (
   ScenePartSpec<THREE.Sprite> |
   ScenePartSpec<THREE.Mesh> |
   ScenePartSpec<Pass>
+);
+
+export type AnyAsyncScenePartSpec = (
+  AsyncScenePartSpec<THREE.PointLight> |
+  AsyncScenePartSpec<THREE.AmbientLight> |
+  AsyncScenePartSpec<THREE.DirectionalLight> |
+  AsyncScenePartSpec<THREE.SpotLight> |
+  AsyncScenePartSpec<THREE.RectAreaLight> |
+  AsyncScenePartSpec<THREE.PerspectiveCamera> |
+  AsyncScenePartSpec<THREE.OrthographicCamera> |
+  AsyncScenePartSpec<THREE.CubeCamera> |
+  AsyncScenePartSpec<THREE.ArrayCamera> |
+  AsyncScenePartSpec<THREE.Sprite> |
+  AsyncScenePartSpec<THREE.Mesh> |
+  AsyncScenePartSpec<Pass>
 );
