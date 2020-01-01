@@ -52,6 +52,7 @@ button.play {
   display: flex;
   border-radius: 5px;
   align-items: center;
+  pointer-events: none;
 }
 
 .progressSlider {
@@ -63,12 +64,16 @@ button.play {
   border-radius: 20px;
   background-color: rgb(80, 80, 80);
   right: -10px;
+  pointer-events: none;
+
 }
 
 .progressSliderWrapper {
   position: absolute;
   width: 100px;
   height: 20px;
+  pointer-events: none;
+
 }
 
 .timeReadout {
