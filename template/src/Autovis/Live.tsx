@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import './index.css';
 import LiveRendererInterface from './LiveRendererInterface';
-import { AnyAsyncScenePartSpec, AnyScenePartSpec } from './types';
+import { AnyAsyncScenePartSpec } from './types';
+import useAsyncParts from './useAsyncParts';
 
 interface AutovisProps {
   width: number;
@@ -16,17 +17,7 @@ export default ({
   sceneParts,
   analysisFrequencies,
 }: AutovisProps) => {
-  const [parts, setParts] = useState<AnyScenePartSpec[]>([]);
-
-  useEffect(
-    () => {
-      Promise
-        .all(sceneParts.map(([objectPromise]) => objectPromise))
-        .then((objects) => sceneParts.map(([promise, updater], index) => [objects[index], updater]) as AnyScenePartSpec[])
-        .then(setParts);
-    },
-    [sceneParts, setParts]
-  );
+  const parts = useAsyncParts(sceneParts);
 
   return (
     <LiveRendererInterface

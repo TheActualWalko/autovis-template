@@ -2,8 +2,9 @@ import React, { useEffect, useState } from 'react';
 import './index.css';
 import StudioRendererInterface from './StudioRendererInterface';
 import getAudioDuration from './getAudioDuration';
-import { AsyncScenePartSpec, AnyAsyncScenePartSpec, ScenePartUpdater, StemFullAnalysisMap, AnyScenePartSpec } from './types';
+import { AsyncScenePartSpec, AnyAsyncScenePartSpec, ScenePartUpdater, StemFullAnalysisMap } from './types';
 import getStemAnalysis from './getStemAnalysis';
+import useAsyncParts from './useAsyncParts';
 
 export function part<T>(object: T | Promise<T>, update?: ScenePartUpdater<T>){
   return [object instanceof Promise ? object : Promise.resolve(object), update] as AsyncScenePartSpec<T>;
@@ -46,21 +47,11 @@ export default ({
     setAudioAnalysis
   ] = useState<{ masterDuration?: number, stemAnalysis?: StemFullAnalysisMap, error?: Error }>({});
 
-  const [parts, setParts] = useState<AnyScenePartSpec[]>([]);
+  const parts = useAsyncParts(sceneParts);
 
   useEffect(() => {
     getAudioAnalysis(masterURL, stemURLs, frameRate).then(setAudioAnalysis);
   }, [masterURL, stemURLs, frameRate, setAudioAnalysis]);
-
-  useEffect(
-    () => {
-      Promise
-        .all(sceneParts.map(([objectPromise]) => objectPromise))
-        .then((objects) => sceneParts.map(([promise, updater], index) => [objects[index], updater]) as AnyScenePartSpec[])
-        .then(setParts);
-    },
-    [sceneParts, setParts]
-  );
 
   if (masterDuration && stemAnalysis && parts.length > 0) {
     return (
