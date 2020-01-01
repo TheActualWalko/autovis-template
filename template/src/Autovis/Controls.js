@@ -1,11 +1,11 @@
-import React, {useState,useEffect} from 'react';
+import React from 'react';
 import './controls.css';
 import toPercent from './toPercent';
 import printTime from './printTime';
 
-const getXPositionRatio = (xPos, element) => {
-  const rect = element.getBoundingClientRect();
-  const mouseXRel = xPos - rect.x;
+const getEventXPositionRatio = (e) => {
+  const rect = e.currentTarget.getBoundingClientRect();
+  const mouseXRel = e.clientX - rect.x;
   const positionRatio = Math.min(Math.max(0, mouseXRel / rect.width), 1);
   return positionRatio;
 };
